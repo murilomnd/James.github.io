@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudShare - Compartilhamento de Arquivos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">☁️ CloudShare</div>
+        </div>
+        <div class="header-right">
+            <div class="user-info">
+                <span class="user-avatar">👤</span>
+                <span class="user-name">João Silva</span>
+            </div>
+            <button class="btn-logout" onclick="handleLogout()">Sair</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-tab="files" onclick="switchTab('files')">
+                    <span class="nav-icon">📁</span>
+                    <span>Meus Arquivos</span>
+                </button>
+                <button class="nav-item" data-tab="shared" onclick="switchTab('shared')">
+                    <span class="nav-icon">🔗</span>
+                    <span>Compartilhados</span>
+                </button>
+                <button class="nav-item" data-tab="settings" onclick="switchTab('settings')">
+                    <span class="nav-icon">⚙️</span>
+                    <span>Configurações</span>
+                </button>
+            </nav>
+
+            <!-- Storage Info -->
+            <div class="storage-info">
+                <h3>Armazenamento</h3>
+                <div class="storage-bar">
+                    <div class="storage-bar-fill" id="storageBarFill"></div>
+                </div>
+                <p class="storage-text" id="storageText">15 GB de 100 GB usados</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Files Tab -->
+            <div class="tab-content active" id="filesTab">
+                <!-- Upload Area -->
+                <div class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📤</div>
+                        <h2>Arraste arquivos aqui</h2>
+                        <p>ou clique para selecionar</p>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.zip">
+                        <button class="btn-primary" onclick="document.getElementById('fileInput').click()">Selecionar Arquivos</button>
+                        <p class="upload-hint">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, ZIP (máx. 100MB)</p>
+                    </div>
+                    <div class="upload-loading hidden" id="uploadLoading">
+                        <div class="spinner"></div>
+                        <p>Enviando arquivo...</p>
+                    </div>
+                </div>
+
+                <!-- Files List -->
+                <div class="files-section">
+                    <h2>Arquivos Recentes</h2>
+                    <div class="files-list" id="filesList">
+                        <!-- Files will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shared Tab -->
+            <div class="tab-content" id="sharedTab">
+                <div class="empty-state">
+                    <span class="empty-icon">🔗</span>
+                    <h2>Arquivos Compartilhados</h2>
+                    <p>Compartilhe seus arquivos com amigos gerando links únicos.</p>
+                    <p>Os links compartilhados aparecerão aqui.</p>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settingsTab">
+                <div class="settings-container">
+                    <h2>Configurações</h2>
+                    <div class="settings-section">
+                        <h3>Perfil</h3>
+                        <div class="setting-item">
+                            <label>Nome:</label>
+                            <input type="text" value="João Silva" class="form-input">
+                        </div>
+                        <div class="setting-item">
+                            <label>Email:</label>
+                            <input type="email" value="joao@email.com" class="form-input">
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>Notificações</h3>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" checked>
+                                Notificar quando alguém acessar meus arquivos compartilhados
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" checked>
+                                Alertas de armazenamento
+                            </label>
+                        </div>
+                    </div>
+                    <button class="btn-primary">Salvar Alterações</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- File Preview Modal -->
+    <div class="modal hidden" id="previewModal">
+        <div class="modal-overlay" onclick="closePreview()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePreview()">✕</button>
+            <div class="modal-header">
+                <h2 id="previewTitle">Visualização</h2>
+            </div>
+            <div class="modal-body" id="previewBody">
+                <!-- Preview content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div class="modal hidden" id="shareModal">
+        <div class="modal-overlay" onclick="closeShare()"></div>
+        <div class="modal-content modal-small">
+            <button class="modal-close" onclick="closeShare()">✕</button>
+            <div class="modal-header">
+                <h2>Compartilhar Arquivo</h2>
+            </div>
+            <div class="modal-body">
+                <p>Compartilhe este link com seus amigos:</p>
+                <div class="share-link-container">
+                    <input type="text" id="shareLink" class="form-input" readonly>
+                    <button class="btn-primary" onclick="copyShareLink()">📋 Copiar</button>
+                </div>
+                <p class="share-success hidden" id="shareSuccess">✓ Link copiado para a área de transferência!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal hidden" id="deleteModal">
+        <div class="modal-overlay" onclick="closeDelete()"></div>
+        <div class="modal-content modal-small">
+            <button class="modal-close" onclick="closeDelete()">✕</button>
+            <div class="modal-header">
+                <h2>Confirmar Exclusão</h2>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir este arquivo?</p>
+                <p class="delete-filename" id="deleteFilename"></p>
+                <div class="modal-actions">
+                    <button class="btn-secondary" onclick="closeDelete()">Cancelar</button>
+                    <button class="btn-danger" onclick="confirmDelete()">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast hidden" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
